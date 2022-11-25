@@ -34,10 +34,9 @@ RANDOM_SEED = 0
 VERSION = 1.0
 AUTHOR = 'Nikolai Borziak'
 NAME = 'SberAutopodpiska: target event prediction'
-DESCRIPTION = '''
-    Модель по предсказанию совершения пользователем одного из 
-    целевых действий "Заказать звонок" или "Оставить заявку"
-    на сайте сервиса СберАвтоподписка.''' 
+DESCRIPTION = ('Модель по предсказанию совершения пользователем одного из '
+               'целевых действий "Заказать звонок" или "Оставить заявку" на '
+               'сайте сервиса СберАвтоподписка.')
 
 # Укажем путь к данным и к папке с моделями
 DATA_FOLDER = Path('data')
@@ -240,7 +239,7 @@ def _get_metadata(model, X, y) -> _metadata_type:
 
     return {
         'name': NAME, 
-        'descripton': DESCRIPTION,  
+        'description': DESCRIPTION,  
         'version': VERSION, 
         'author': AUTHOR, 
         'model_type': model['model'].__class__.__name__,
