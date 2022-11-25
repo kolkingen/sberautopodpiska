@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException
@@ -78,7 +79,7 @@ def _predict(data: pd.DataFrame, return_proba: bool = False) -> pd.Series:
 
 @app.post('/predict', response_model=Prediction)
 def predict_class(data_form: DataForm) -> Prediction:
-    """Возвращает предсказанный класс."""
+    """Возвращает предсказанный класс для одного объекта."""
 
     logger.debug(f'Запрос на предсказание класса. Статус: {status.name}.')
     _check_status()
@@ -94,7 +95,7 @@ def predict_class(data_form: DataForm) -> Prediction:
 
 @app.post('/predict_proba', response_model=Prediction)
 def predict_proba(data_form: DataForm) -> Prediction:
-    """Возвращает вероятность положительного класса."""
+    """Возвращает вероятность положительного класса для одного объекта."""
 
     logger.debug(f'Запрос на предсказание вероятности положительного класса. '
                  f'Статус: {status.name}.')
@@ -107,6 +108,48 @@ def predict_proba(data_form: DataForm) -> Prediction:
                 f'`sessions_id`={data_form.session_id}.')
 
     return Prediction(session_id=data_form.session_id, prediction=prediction)
+
+
+@app.post('/predict_many', response_model=List[Prediction])
+def predict_classes(data_forms: List[DataForm]) -> List[Prediction]:
+    """Возвращает предсказанный класс для множества объектов."""
+
+    logger.debug(f'Запрос на предсказание класса. Статус: {status.name}.')
+    _check_status()
+
+    # Получение предсказания
+    data = pd.DataFrame(jsonable_encoder(data_forms))
+    predictions = _predict(data, return_proba=False)
+    logger.info(f'{predictions} - предсказания для группы объектов.')
+
+    results = list()
+    for data_form, prediction in zip(data_forms, predictions):
+        result = Prediction(
+            session_id=data_form.session_id, prediction=prediction)
+        results.append(result)
+
+    return results
+
+
+@app.post('/predict_proba_many', response_model=List[Prediction])
+def predict_probas(data_forms: List[DataForm]) -> List[Prediction]:
+    """Возвращает вероятность положительного класса для множества объектов."""
+
+    logger.debug(f'Запрос на предсказание класса. Статус: {status.name}.')
+    _check_status()
+
+    # Получение предсказания
+    data = pd.DataFrame(jsonable_encoder(data_forms))
+    predictions = _predict(data, return_proba=True)
+    logger.info(f'{predictions} - предсказания для группы объектов.')
+
+    results = list()
+    for data_form, prediction in zip(data_forms, predictions):
+        result = Prediction(
+            session_id=data_form.session_id, prediction=prediction)
+        results.append(result)
+
+    return results
 
 
 # Загрузка модели
