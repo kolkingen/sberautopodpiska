@@ -1,10 +1,14 @@
 import logging
 
+import pandas as pd
 from fastapi import FastAPI, HTTPException
+from fastapi.encoders import jsonable_encoder
 
 from .status import Status
 from .loader import load_model
 from .metadata import Metadata
+from .prediction import Prediction
+from .data_form import DataForm
 
 
 # Создание логгера
@@ -49,6 +53,60 @@ def get_metadata() -> Metadata:
         raise HTTPException(status_code=404, detail='У модели нет метаданных.')
     else:
         return Metadata.parse_obj(metadata)
+
+
+def _predict(data: pd.DataFrame, return_proba: bool = False) -> pd.Series:
+    """Предсказывает класс или вероятность положительного класса."""
+
+    # Получаем порог
+    try: 
+        threshold = model.metadata['threshold']
+    except:
+        threshold = 0.5
+
+    # Производим предсказание 
+    try: 
+        prediction = model.predict_proba(data)[:, 1]
+    except AttributeError:
+        prediction = model.predict(data)
+    else:
+        if not return_proba:
+            prediction = (prediction > threshold).astype(float)
+
+    return prediction
+
+
+@app.post('/predict', response_model=Prediction)
+def predict_class(data_form: DataForm) -> Prediction:
+    """Возвращает предсказанный класс."""
+
+    logger.debug(f'Запрос на предсказание класса. Статус: {status.name}.')
+    _check_status()
+
+    # Получение предсказания
+    data = pd.DataFrame(jsonable_encoder([data_form]))
+    prediction = _predict(data, return_proba=False)[0]
+    logger.info(f'{prediction} - предсказание для '
+                f'`sessions_id`={data_form.session_id}.')
+
+    return Prediction(session_id=data_form.session_id, prediction=prediction)
+
+
+@app.post('/predict_proba', response_model=Prediction)
+def predict_proba(data_form: DataForm) -> Prediction:
+    """Возвращает вероятность положительного класса."""
+
+    logger.debug(f'Запрос на предсказание вероятности положительного класса. '
+                 f'Статус: {status.name}.')
+    _check_status()
+
+    # Получение предсказания
+    data = pd.DataFrame(jsonable_encoder([data_form]))
+    prediction = _predict(data, return_proba=True)[0]
+    logger.info(f'{prediction} - предсказание для '
+                f'`sessions_id`={data_form.session_id}.')
+
+    return Prediction(session_id=data_form.session_id, prediction=prediction)
 
 
 # Загрузка модели
