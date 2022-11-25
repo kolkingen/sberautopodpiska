@@ -1,9 +1,10 @@
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from .status import Status
 from .loader import load_model
+from .metadata import Metadata
 
 
 # Создание логгера
@@ -24,6 +25,30 @@ def get_status() -> str:
 
     logger.debug(f'Запрос статуса сервиса. Статус: {status.name}.')
     return status.value
+
+
+def _check_status() -> None:
+    """Проверяет статус сервиса. Если он не работает вызывает ошибку."""
+
+    if status != Status.OK:
+        logger.error(
+            f'Запрос не может быть выполнен, сервис не готов к работе.')
+        raise HTTPException(status_code=404, detail=status.value)
+
+
+@app.get('/version', response_model=Metadata)
+def get_metadata() -> Metadata:
+    """Возвращает метаданные модели."""
+
+    logger.debug(f'Запрос метаданных модели. Статус: {status.name}.')
+    _check_status()
+    try: 
+        metadata = model.metadata
+    except AttributeError:
+        logger.error(f'Запрос метаданных отклонён: у модели нет метаданных.')
+        raise HTTPException(status_code=404, detail='У модели нет метаданных.')
+    else:
+        return Metadata.parse_obj(metadata)
 
 
 # Загрузка модели
