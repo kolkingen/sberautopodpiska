@@ -1,0 +1,6 @@
+/data/
+.venv/
+__pycache__/
+catboost_info/
+.ipynb_checkpoints/
+/*test.py
