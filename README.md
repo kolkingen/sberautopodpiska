@@ -26,7 +26,6 @@ uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
 Также приложение может быть запущено с помощью Docker. Для этого нужно выполнить в корневой папке проекта команды для построения образа и запуска `docker-compose` (возможно с `sudo`):
-
 ```
 docker-compose build
 docker-compose up
@@ -34,6 +33,7 @@ docker-compose up
 # для выключения docker-compose
 docker-compose down
 ```
+Папка с моделями `models` подключается как внешний том в `docker-compose.yml`.
 
 В любом случае приложение будет доступно по адресу `http://127.0.0.1:8000`.
 
