@@ -1,4 +1,5 @@
-/data/
+/data/*
+!/data/examples.json
 .venv/
 __pycache__/
 catboost_info/
