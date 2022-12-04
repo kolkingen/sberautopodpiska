@@ -7,3 +7,4 @@ feature-engine==1.4.0
 catboost==1.1.1
 xgboost==0.90
 lightgbm==2.2.3
+bayesian-optimization==1.4.1

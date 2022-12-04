@@ -31,7 +31,7 @@ import additional_data as add
 
 # Информация о модели
 RANDOM_SEED = 0
-VERSION = 1.0
+VERSION = 1.1
 AUTHOR = 'Nikolai Borziak'
 NAME = 'SberAutopodpiska: target event prediction'
 DESCRIPTION = ('Модель по предсказанию совершения пользователем одного из '
@@ -107,17 +107,18 @@ def _get_model() -> BaseEstimator:
         ('outlier_remover', Winsorizer()), 
         ('scaler', SklearnTransformerWrapper(StandardScaler())), 
         # Преобразования категориальных признаков
-        ('rare_encoder', RareLabelEncoder(tol=0.05, replace_with='rare')),
+        ('rare_encoder', RareLabelEncoder(tol=0.03541, replace_with='rare')),
         ('onehot_encoder', OneHotEncoder(drop_last_binary=True)), 
         ('bool_converter', FunctionTransformer(_converse_types)), 
         # Удаление дубликатов и коррелируемых признаков
-        ('constant_dropper', DropConstantFeatures(tol=0.99)), 
+        ('constant_dropper', DropConstantFeatures(tol=0.9767)), 
         ('duplicated_dropper', DropDuplicateFeatures()), 
-        ('correlated_dropper', DropCorrelatedFeatures(threshold=0.95)), 
+        ('correlated_dropper', DropCorrelatedFeatures(threshold=0.8633)), 
         # Лучшая модель с оптимизированными гиперпараметрами
         ('model', LGBMClassifier(
-            n_estimators=800, learning_rate=0.07, reg_lambda=10, reg_alpha=10, 
-            num_leaves=26, boosting_type='goss', random_state=RANDOM_SEED))])
+            random_state=RANDOM_SEED, learning_rate=0.04197, 
+            boosting_type='gbdt', n_estimators=4700, reg_lambda=2.237, 
+            reg_alpha=8.335, num_leaves=16))])
 
 
 def _set_index(data: pd.DataFrame, column: str = 'session_id') -> pd.DataFrame:
